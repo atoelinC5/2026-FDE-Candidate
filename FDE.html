@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FDE: Forward-Deployed AI Architect 專業測驗 (V9 限時與客製回饋版)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .intro, .user-info {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .intro { border-left: 5px solid #e74c3c; } 
+        .user-info { border-left: 5px solid #e67e22; }
+        
+        .warning-text {
+            color: #c0392b;
+            font-weight: bold;
+            background: #fadbd8;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        .user-info input {
+            padding: 10px;
+            font-size: 1em;
+            width: 80%;
+            max-width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .question-block {
+            background: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 5px solid #3498db;
+            display: none;
+        }
+        .question-title { font-weight: bold; font-size: 1.1em; margin-bottom: 15px; line-height: 1.4; }
+        .options { list-style-type: none; padding: 0; }
+        .options li { margin-bottom: 12px; line-height: 1.5; }
+        label { cursor: pointer; display: flex; align-items: flex-start; }
+        input[type="radio"] { margin-right: 10px; margin-top: 4px; }
+        
+        .badge {
+            display: inline-block; padding: 3px 8px; border-radius: 4px; 
+            font-size: 0.8em; font-weight: bold; margin-bottom: 10px;
+        }
+        .badge.coding { background-color: #e74c3c; color: white; }
+        .badge.general { background-color: #f39c12; color: white; }
+
+        button {
+            background-color: #3498db; color: white; border: none;
+            padding: 12px 24px; font-size: 1.1em; border-radius: 5px;
+            cursor: pointer; display: block; margin: 20px auto;
+        }
+        button:hover { background-color: #2980b9; }
+        #submitBtn { display: none; background-color: #e74c3c; }
+        #submitBtn:hover { background-color: #c0392b; }
+        #result {
+            display: none; background: #e8f8f5; padding: 30px;
+            border-radius: 8px; margin-top: 20px; text-align: center;
+            border-left: 5px solid #1abc9c;
+            line-height: 1.6;
+        }
+        #result h3 { color: #16a085; }
+        #result p { text-align: justify; }
+        .spinner {
+            border: 4px solid #f3f3f3; border-top: 4px solid #3498db;
+            border-radius: 50%; width: 30px; height: 30px;
+            animation: spin 1s linear infinite; margin: 0 auto 15px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <h1>FDE: Forward-Deployed AI Architect 專業測驗</h1>
+    
+    <div class="intro" id="introBlock">
+        <p><strong>職位背景：</strong>我們正在尋找一位具備高商業敏銳度與技術視野的 FDE (Forward-Deployed AI Architect)。您將站在產品策略、市場拓展與 AI 技術落地的最前線，帶領企業客戶完成 AI 轉型。</p>
+        <p>本測驗共 <strong>25 題</strong>，滿分 100 分（每題答對得 4 分）。重點涵蓋最新 AI 常識、商業應用策略與基礎版控觀念。</p>
+        <div class="warning-text">
+            ⚠️ 注意：為避免猜題與確保實力，本測驗採用以下規則：<br>
+            • <strong>嚴格限時</strong>：本測驗計時 25 分鐘，超過 25 分鐘交卷者，成績將被標記為「無效」。<br>
+            • <strong>倒扣機制</strong>：未作答不扣分 (0分)；答錯【一般題】扣 1 分；答錯【程式題】扣 2 分。<br>
+            若不確定答案，建議留白。選項長度皆經過嚴格平衡。
+        </div>
+    </div>
+
+    <div class="user-info" id="userInfoBlock">
+        <label for="candidateName"><strong>請輸入您的真實姓名：</strong></label><br><br>
+        <input type="text" id="candidateName" placeholder="例如：王小明" required>
+        <button type="button" onclick="startQuiz()">開始測驗</button>
+    </div>
+
+    <form id="quizForm">
+        <div id="questionsContainer"></div>
+        <button type="button" id="submitBtn" onclick="submitQuiz()">交卷送出</button>
+    </form>
+
+    <div id="result">
+        <div id="loadingStatus">
+            <div class="spinner"></div>
+            <p>正在上傳測驗結果，請稍候，切勿關閉視窗...</p>
+        </div>
+        <div id="finalStatus" style="display:none;">
+            <!-- 根據分數與時間動態替換 -->
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            // Q1 (Coding) - Ans: A
+            { type: "coding", q: "在團隊協作中，如果你想先從 GitHub 上抓取最新的更新紀錄看看，但不急著合併 (Merge) 到自己的開發進度中，應該使用哪一個 Git 指令？", options: ["A. 執行 git fetch 抓取遠端分支狀態", "B. 執行 git pull 抓取並自動合併更新", "C. 執行 git push 推送本機端代碼狀態", "D. 執行 git commit 提交目前修改狀態"], ans: "A" },
+            // Q2 (Coding) - Ans: C
+            { type: "coding", q: "身為 FDE，當你在測試環境發現嚴重 Bug 需要立刻切換分支修復，但當前的實驗性 AI 程式碼還沒寫完不想 commit，應該使用哪一個 Git 指令暫存進度？", options: ["A. 使用 git reset 指令退回歷史節點", "B. 使用 git rebase 指令重寫提交歷史", "C. 使用 git stash 指令暫存工作區進度", "D. 使用 git revert 指令撤銷特定提交"], ans: "C" },
+            // Q3 (Coding) - Ans: D
+            { type: "coding", q: "在 GitHub 的協作流程中，若你要提議將你分支上的新功能合併到主分支 (main) 交由團隊審查，最標準的流程是發起什麼？", options: ["A. 發起 Fork (專案分支建立請求)", "B. 發起 Clone (專案代碼複製請求)", "C. 發起 Issue (專案問題追蹤請求)", "D. 發起 Pull Request (代碼合併請求)"], ans: "D" },
+
+            // Q4 (General) - Ans: B
+            { type: "general", q: "目前業界常提到的 'Agentic AI' (代理型 AI，如 AI Agents) 與早期一問一答的 ChatGPT 最大差異是什麼？", options: ["A. 能夠完全不依賴雲端運算資源，僅在邊緣裝置上提供極低延遲的離線推論服務。", "B. 具備自主規劃步驟、呼叫外部工具並修正錯誤以完成複雜任務的獨立執行能力。", "C. 專門針對多模態的動態影像生成進行底層架構最佳化，以取代傳統影音設計工具。", "D. 採用了極大化的百萬級參數模型，使其在處理單次文字問答時的精準度達到完美。"], ans: "B" },
+            // Q5 (General) - Ans: A
+            { type: "general", q: "OpenAI 推出的 'o1' 系列模型，其核心突破與傳統 GPT-4 有何不同？", options: ["A. 具備強大的內部推理鏈，在實際生成回答前會花費更多時間思考以解構複雜邏輯。", "B. 採用了完全開源的商業授權策略，允許企業免費進行底層權重的微調與二次開發。", "C. 專注於多模態的即時語音雙向翻譯，並將運算延遲壓縮到人耳無法察覺的毫秒級。", "D. 捨棄了常規的 Transformer 架構，改採全新的純卷積神經網路以提升整體生成速度。"], ans: "A" },
+            // Q6 (General) - Ans: C
+            { type: "general", q: "目前各大科技廠積極投入研發的 'SLM' (小型語言模型，如 Llama 3 8B)，其主要商業應用場景是什麼？", options: ["A. 取代現有雲端超大型運算中心，作為通用型人工智慧 (AGI) 的終極開源解決方案。", "B. 用作大型模型的專屬資料清洗過濾器，專門處理並標註數以萬計的原始訓練數據。", "C. 部署於終端手機或物聯網邊緣裝置，提供低延遲、保護隱私且硬體運算成本極低的服務。", "D. 取代傳統的關聯式商業資料庫系統，提供企業內部高併發的結構化數據儲存與全文檢索。"], ans: "C" },
+            // Q7 (General) - Ans: D
+            { type: "general", q: "當我們說 Gemini 支援高達 1M 到 2M 的 Context Window 時，這對商業應用意味著什麼？", options: ["A. 系統推論速度將呈現指數等級成長，單次對話的文字生成時間可被壓縮至微秒等級。", "B. 企業可以同時允許高達數百萬名使用者，在同一個伺服器節點上進行高頻率的即時問答。", "C. 模型的底層神經元與參數規模產生大幅度擴增，使其直接具備超越人類專家的創造能力。", "D. 系統能夠一次性讀取並分析數千頁的企業機密文件、整本程式碼庫或長篇影音多媒體資料。"], ans: "D" },
+            // Q8 (General) - Ans: A
+            { type: "general", q: "針對「長文本摘要」任務，早期的 LLM 常常發生 'Lost in the middle' 現象。這是指什麼？", options: ["A. 模型能精準記住前後端的輸入資訊，但極其容易遺漏或完全忽略文章中段的關鍵細節與脈絡。", "B. 系統在處理超過字數長度限制的文本時，運算過程容易發生記憶體溢出並直接導致伺服器當機。", "C. 網路請求在傳輸的中段過程中發生嚴重封包遺失，導致最終生成的摘要結果出現亂碼或遭到截斷。", "D. 演算法在推論過程中陷入邏輯上的無窮迴圈，導致只能不斷重複生成相同的文字段落而無法停止。"], ans: "A" },
+            // Q9 (General) - Ans: B
+            { type: "general", q: "關於 'AI 幻覺' (Hallucination)，下列哪一個商業認知是最準確的？", options: ["A. 只要企業願意採購最高規格的頂級付費雲端模型，便能夠百分之百根除所有潛在的幻覺問題。", "B. 它是機率模型預測下個字詞架構下的必然產物，目前無法完全根除，但可透過 RAG 等技術顯著降低。", "C. 這是由於人工智慧模型逐漸產生了虛擬的自我意識，進而主動對使用者隱瞞或竄改真實的背景資訊。", "D. 這種現象僅侷限於參數極少的開源輕量級模型，目前主流的商業閉源 API 已經完全克服了此項技術缺陷。"], ans: "B" },
+
+            // Q10 (General) - Ans: C
+            { type: "general", q: "Anthropic 的 Claude 3.5 系列中，備受推崇的 'Artifacts' 功能解決了什麼核心痛點？", options: ["A. 提供無上限的企業級加密雲端硬碟空間，讓團隊能永久儲存並跨部門共享龐大的訓練資料與腳本。", "B. 內建即時多國語言的雙向口譯轉換功能，讓跨國會議的文字紀錄能瞬間完成在地化的高品質翻譯。", "C. 讓模型生成的程式碼、網頁介面或互動圖表，能直接在對話旁的獨立視窗中進行即時預覽與視覺操作。", "D. 允許模型自主串接企業內部的電話總機語音系統，自動外撥並妥善處理第一線客戶的各類客訴問題。"], ans: "C" },
+            // Q11 (General) - Ans: D
+            { type: "general", q: "Google Gemini 模型強調其為 'Native Multimodal' (原生多模態)。這對商業應用帶來什麼直接優勢？", options: ["A. 執行時完全不需要依賴昂貴的圖形處理器 (GPU)，僅靠一般廉價 CPU 即可完成所有高階的多媒體運算。", "B. 軟體架構被嚴格限定在 Android 作業系統上原生執行，從而獲得系統底層級別的最高權限與處理效能。", "C. 內建了最先進的 5G 通訊協定控制軟體模組，使其在各類物聯網設備上的網路傳輸延遲能夠降到最低。", "D. 從底層聯合訓練跨媒材資料，在處理圖、文、影、音相互交錯的複雜任務時，資訊不遺失且理解更加精準。"], ans: "D" },
+            // Q12 (General) - Ans: A
+            { type: "general", q: "NotebookLM 與一般 ChatGPT 定位不同，其核心主打的特色是什麼？", options: ["A. 採用 Source-grounded 技術，強制 AI 僅能依據使用者手動上傳的文件進行問答，以大幅度降低幻覺發生。", "B. 提供一鍵生成全端網頁架構的專屬功能，大幅減少 UI/UX 設計師與後端程式開發工程師之間的溝通成本。", "C. 專注於生成高度逼真且完全符合物理定律的商業宣傳圖像，以徹底取代傳統的商業攝影與後期修圖流程。", "D. 作為社群媒體行銷的自動化戰情中心，能自主規劃並發布跨平台的行銷貼文、回覆留言與統籌活動排程。"], ans: "A" },
+            // Q13 (General) - Ans: B
+            { type: "general", q: "NotebookLM 爆紅的 'Audio Overviews' 功能，能夠將文件轉化為哪種形式以降低吸收門檻？", options: ["A. 自動化整理並輸出為精美排版的 PowerPoint 企業級商業簡報，並同步附帶講者專用的高水準中英文備忘稿。", "B. 生成兩位逼真的 AI 虛擬主持人，以生動對談與閒聊的形式深入探討複雜文件內容的優質 Podcast 語音節目。", "C. 運用最新世代的生成式圖形渲染技術，將枯燥的市場研究數據直接轉譯為高品質且具故事性的 3D 動畫短片。", "D. 直接無縫串接企業內部的 VoIP 通訊系統，將冗長的報告內容轉為自動語音通話，並準時撥放給指定的高階主管。"], ans: "B" },
+            // Q14 (General) - Ans: C
+            { type: "general", q: "若你需要向客戶展示強大且能兼顧速度的複雜任務模型，Claude 3 系列中哪一個版本符合「速度與智能最佳平衡」？", options: ["A. Claude 3 Haiku，主打極致的邊緣推論速度與最低的網路延遲，特別適合用來處理海量且邏輯簡單的日誌分析任務。", "B. Claude 3 Opus，擁有該系列最為龐大驚人的參數規模，專門用於處理需要極高智商的數學推導與前瞻學術研究。", "C. Claude 3.5 Sonnet，在各項主流基準測試中展現出卓越智能，同時保持極高的生成速度與極具商業競爭力的性價比。", "D. Claude 2.1 Enterprise，針對傳統金融與醫療產業推出的合規專屬版本，強調絕對的資料鎖定與嚴格的稽核軌跡。"], ans: "C" },
+
+            // Q15 (General) - Ans: D
+            { type: "general", q: "在評估企業導入 LLM 時常提到的『Token』，在成本計算上主要是指什麼？", options: ["A. 企業為獲取該模型專屬地端部署之永久權利，所需單次支付給原廠的一次性軟體授權與商業買斷鉅額費用。", "B. 開發者在雲端平台上註冊 API 服務時，系統所自動配發用來驗證應用程式身分並追蹤使用軌跡的金鑰數量。", "C. 雲端伺服器在滿載運作的極端情況下，每秒鐘所能成功並行處理並回傳給使用者的 API 網路請求之總數量。", "D. 大型語言模型在處理輸入提示與生成輸出文字時，用來將文本拆解、轉換並作為底層計費標準的基本計算單位。"], ans: "D" },
+            // Q16 (General) - Ans: A
+            { type: "general", q: "企業選擇「開源模型」與「閉源模型 API」時，最大的商業考量點通常是什麼？", options: ["A. 開源可部署於地端確保機密絕對不外流，但需自行負擔硬體維運成本；閉源免維運，但機密資料需傳送至外部伺服器。", "B. 開源模型在邏輯推理與語意理解上通常遠勝於商業閉源模型，且企業能輕易獲得全天候的官方免費專屬技術支援。", "C. 閉源 API 具備絕佳的離線運行優勢，完全不需要連上網際網路，即可在企業內網提供極度高效且安全的文字生成服務。", "D. 開源模型採用了劃時代的輕量化神經網路架構，企業完全不需要配備任何昂貴的顯示卡，即可達成即時的推論需求。"], ans: "A" },
+            // Q17 (General) - Ans: B
+            { type: "general", q: "在軟體開發團隊中導入 AI 輔助工具（如 Copilot），對企業最大的商業價值是什麼？", options: ["A. 大幅度降低研發部門的經常性人事成本，使其能夠在極短的期限內合法裁撤超過半數以上的基層程式開發人員。", "B. 顯著減少工程師撰寫重複性程式碼與樣板檔案的時間，使其能更專注於高價值的系統架構設計與核心業務邏輯優化。", "C. 賦予軟體系統自動在網路上爬取並分析潛在客戶名單的能力，將傳統的軟體工程部門直接轉型為高利潤的業務行銷中心。", "D. 透過精準的預測性維護與自動化的記憶體管理釋放機制，確保企業的生產環境伺服器能夠達成永久不發生當機的完美紀錄。"], ans: "B" },
+            // Q18 (General) - Ans: C
+            { type: "general", q: "在 B2B 銷售中，若產品具備 AI 賦能，身為 FDE 向高層 (C-level) 提案時應最優先強調什麼？", options: ["A. 詳細且完整地解說該底層神經網路模型到底包含了多少十億個參數，以及其背後龐大訓練資料集的來源與涵蓋廣度。", "B. 鉅細靡遺地說明系統機房內配備了多少張最新世代的高階運算顯示卡，以充分展示企業所擁有的強大硬體資本與算力火力。", "C. 具體且量化地聚焦於該 AI 功能如何協助客戶企業提升整體的營運效率、實質降低作業成本，或帶來可觀的潛在營收成長。", "D. 透過現場實機展示該語言模型能夠寫出多麼複雜精妙的電腦演算法，藉此強力證明其底層技術力已經完全超越了人類專家。"], ans: "C" },
+            // Q19 (General) - Ans: D
+            { type: "general", q: "企業級 AI 專案管理中所倡導的 'Human-in-the-loop' (HITL) 概念是指什麼？", options: ["A. 嚴格要求公司的 IT 維運人員必須進行每天定期的實體機房巡檢，以確保所有運行 AI 模型的伺服器硬體設備運作皆正常無誤。", "B. 強制要求第一線的客服人員必須刻意模仿人工智慧的制式語氣與用詞來回覆訊息，以維持整個企業品牌對外形象的絕對一致性。", "C. 為了徹底避免任何潛在的資安漏洞與法規遵循風險，要求完全排除 AI 的參與，將所有原本自動化的業務流程全數回歸純手工處理。", "D. 在 AI 執行自動化決策或生成高風險敏感內容的關鍵環節中，刻意保留人類專家進行最終審核、修改與強行干預的防線機制。"], "ans": "D" },
+
+            // Q20 (Coding) - Ans: A
+            { type: "coding", q: "若企業導入 AI 客服但極度擔心 AI 產生幻覺而給出錯誤承諾，採用哪種架構最能降低此風險？", options: ["A. 採用 RAG 架構，並在系統提示詞中嚴格限制模型，要求其僅能依據檢索到的企業內部專屬知識庫內容進行嚴謹回答。", "B. 將推論 API 的 Temperature 參數調至最大極限值，藉此激發模型產生更具創意、同理心與隨機應變能力的客戶安撫話術。", "C. 聘請大量的頂尖資料科學家，規定每天必須手動將前一天的客服對話紀錄重新整理，並對超大型基礎模型進行全參數微調。", "D. 從終端應用程式的前端介面直接進行長度限制，嚴格禁止終端客戶輸入超過十個字元的問句，以大幅降低 AI 發生理解錯誤的機率。"], ans: "A" },
+            // Q21 (Coding) - Ans: B
+            { type: "coding", q: "在建置 RAG (檢索增強生成) 架構時，我們通常會將企業內部的歷史文件轉換成什麼形式以便 AI 檢索？", options: ["A. 透過先進的語音合成技術全數轉換為 MP3 聲音檔格式，以便語言模型能透過音軌的頻率特徵進行極速的語意比對與搜尋。", "B. 透過嵌入模型 (Embedding Model) 將純文本轉換為高維度空間的數值向量，並將其妥善儲存於具備相似度搜尋功能的專屬向量資料庫中。", "C. 將所有包含表格與圖片的非結構化文件透過網頁解析技術，強制轉換為純 HTML 標籤格式，以利傳統的關鍵字搜尋引擎進行無縫抓取。", "D. 利用業界最高壓縮比的演算法將所有歷史檔案打包成單一的 ZIP 壓縮檔格式，以最大程度地節省企業內部伺服器的實體儲存空間。"], ans: "B" },
+            // Q22 (Coding) - Ans: C
+            { type: "coding", q: "在 AI 應用開發中，開發者常設定的 'System Prompt' (系統提示詞) 具體作用為何？", options: ["A. 它是作業系統底層內建的高階命令列終端機工具，專門用來即時監控並強制重新啟動因運算超載而發生嚴重當機的語言模型伺服器。", "B. 它是當人工智慧模型推論過程中發生嚴重超時或記憶體配置溢出時，系統會自動透過電子郵件發送給資料中心維運人員的警告錯誤訊息。", "C. 它是隱藏置於對話最前端的底層核心指令，用來明確賦予 AI 特定的角色定位、回覆語氣規範，以及絕對不可違背的核心業務任務限制。", "D. 它是終端使用者在網頁操作介面上隨手輸入的模糊搜尋關鍵字，會被系統自動記錄並直接作為企業下一次進行行銷廣告投放的數據依據。"], ans: "C" },
+            // Q23 (Coding) - Ans: D
+            { type: "coding", q: "若你正在利用 AI 產生一份「嚴謹且具有法律效力的商業合約草稿」，Temperature 參數應該如何設定？", options: ["A. 強烈建議將其設定為 1.0 的最大值，以充分獲取模型最豐富的創意與多樣化的詞彙組合，讓整份合約內容更具備靈活彈性的談判空間。", "B. 強烈建議將其設定為 2.0 的超限數值，藉此強制開啟模型內部的最高強度安全防護機制，以確保絕對不會產生任何違反當地法規的條款。", "C. 該參數僅會單純影響模型推論時所需要消耗的顯示卡記憶體容量，針對最終生成的文字內容結構與邏輯嚴謹度，並不會產生任何實質的改變。", "D. 強烈建議將其設定為 0.0 或趨近於零的極低數值，以徹底消除輸出結果的隨機性，確保每次生成的條款都具備極高的確定性、穩定性與一致性。"], ans: "D" },
+            // Q24 (Coding) - Ans: A
+            { type: "coding", q: "當你需要教導 AI 穩定輸出特定格式的 JSON 資料以供後端程式串接時，下列哪一種實務技巧最為有效？", options: ["A. 採用 Few-Shot Prompting 策略，直接在提示詞的段落中明確提供一到兩個完全正確的 JSON 輸出範例，讓語言模型能夠清楚且準確地模仿其結構。", "B. 採用 Zero-Shot Prompting 策略，為了避免範例造成干擾，應完全不給予任何範例，僅使用極度嚴厲的語氣強制要求語言模型自行憑空理解 JSON 的規格。", "C. 為了確保資料不會出錯，應改變底層溝通協定，要求模型先輸出最原始的二進位機器碼，再交由本地端的後端伺服器自行編譯並轉譯為合法的 JSON 格式。", "D. 為了繞過常規模型的安全限制，將所有的系統提示詞與結構要求全部改用冷門的法語或德語進行撰寫，藉此觸發模型內部更深層、更強大的邏輯解析神經網路。"], ans: "A" },
+            // Q25 (Coding) - Ans: B
+            { type: "coding", q: "所謂的 'Prompt Engineering' (提示工程) 在企業商業實務中，其最關鍵的核心目的是什麼？", options: ["A. 專門培養駭客專家用來找尋並利用其他競爭對手 AI 系統中的底層漏洞，藉由惡意注入指令來非法竊取其機密的商業研發資料或高淨值的客戶名單。", "B. 透過撰寫結構化、高清晰度且脈絡完整的上下文指令，有效引導語言模型穩定地產出完全符合企業嚴格業務需求與品質標準的高經濟價值最終結果。", "C. 透過極度精簡與暴力壓縮的特殊語法，大幅度降低提示詞所佔用的字元長度，進而讓雲端運算系統的整體推論處理速度能夠毫無代價地直接提升十倍以上。", "D. 用於訓練不具備任何電腦科學與程式基礎的基層行銷人員，使其能夠直接利用日常生活的自然語言，親自教導人工智慧如何編寫極度複雜的底層組合語言。"], ans: "B" }
+        ];
+
+        let startTime, endTime;
+        let candidateName = "";
+
+        const container = document.getElementById('questionsContainer');
+        questions.forEach((q, index) => {
+            const div = document.createElement('div');
+            div.className = 'question-block';
+            
+            let badgeHtml = '';
+            if (q.type === 'coding') {
+                badgeHtml = '<span class="badge coding">程式技術題 (答錯扣2分)</span>';
+            } else {
+                badgeHtml = '<span class="badge general">一般商業題 (答錯扣1分)</span>';
+            }
+
+            let optionsHtml = '';
+            q.options.forEach((opt, i) => {
+                const optLetter = opt.charAt(0);
+                optionsHtml += `<li><label><input type="radio" name="q${index}" value="${optLetter}"> ${opt}</label></li>`;
+            });
+            div.innerHTML = `${badgeHtml}<div class="question-title">${index + 1}. ${q.q}</div><ul class="options">${optionsHtml}</ul>`;
+            container.appendChild(div);
+        });
+
+        function startQuiz() {
+            const nameInput = document.getElementById('candidateName').value.trim();
+            if (!nameInput) { alert("請先輸入您的姓名！"); return; }
+            candidateName = nameInput;
+            startTime = new Date();
+            
+            document.getElementById('introBlock').style.display = 'none';
+            document.getElementById('userInfoBlock').style.display = 'none';
+            document.querySelectorAll('.question-block').forEach(el => el.style.display = 'block');
+            document.getElementById('submitBtn').style.display = 'block';
+            
+            alert("測驗開始！\n選項敘述已經過字數平衡設計，請勿嘗試靠長度猜題。\n注意：本測驗限時25分鐘，超時作答將判定為無效。祝您順利！");
+        }
+
+        function submitQuiz() {
+            let score = 0;
+            let answered = 0;
+            let correctCount = 0;
+            let wrongCount = 0;
+            let blankCount = 0;
+            let answersLog = [];
+            
+            questions.forEach((q, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                if (selected) {
+                    answered++;
+                    if (selected.value === q.ans) {
+                        score += 4; 
+                        correctCount++;
+                        answersLog.push(`第 ${index+1} 題 [${q.type}]: ${selected.value} (正確)`);
+                    } else {
+                        const penalty = (q.type === 'coding') ? 2 : 1;
+                        score -= penalty;
+                        wrongCount++;
+                        answersLog.push(`第 ${index+1} 題 [${q.type}]: ${selected.value} (錯誤，正解: ${q.ans}，扣 ${penalty} 分)`);
+                    }
+                } else {
+                    blankCount++;
+                    answersLog.push(`第 ${index+1} 題 [${q.type}]: 未作答 (0 分)`);
+                }
+            });
+
+            if (answered < questions.length) {
+                if(!confirm(`您還有 ${questions.length - answered} 題未作答！\n未作答不扣分，答錯會倒扣。確定要提早交卷嗎？`)) return;
+            }
+
+            endTime = new Date();
+            const durationSec = Math.floor((endTime - startTime) / 1000);
+            const minutes = Math.floor(durationSec / 60);
+            const seconds = durationSec % 60;
+            
+            // 判斷是否超時 (25分鐘 = 1500秒)
+            const isTimeout = durationSec > 25 * 60;
+            const timeStatusLabel = isTimeout ? "[超時無效]" : "[有效]";
+
+            const payload = {
+                candidateName: candidateName,
+                startTime: startTime.toLocaleString(),
+                endTime: endTime.toLocaleString(),
+                duration: `${minutes} 分 ${seconds} 秒 ${timeStatusLabel}`,
+                finalScore: score,
+                // Using array join to avoid multi-line string syntax errors in python to js rendering
+                answersLog: ["狀態: " + timeStatusLabel + " | 總分: " + score + " | 答對: " + correctCount + " | 答錯: " + wrongCount + " | 未答: " + blankCount, "---"].concat(answersLog).join("\n")
+            };
+
+            // 設定回饋文字
+            let feedbackHTML = "";
+            if (isTimeout) {
+                feedbackHTML = `
+                    <h3>⏱️ 測驗逾時 (成績無效)</h3>
+                    <p>很遺憾，由於您的作答時間已超過規定的 25 分鐘限制，根據系統規則，本次測驗成績將被標記為「無效」。在瞬息萬變的AI前線，時間管理與決策速度同樣是關鍵能力。感謝您的參與，請繼續保持對技術的熱忱！</p>
+                `;
+            } else if (score >= 90) {
+                feedbackHTML = `
+                    <h3>🎉 測驗已完成！</h3>
+                    <p>太精彩了！您完全展現了深厚的技術底蘊與卓越的商業視野。從複雜的系統架構到最新的AI發展趨勢，您都瞭若指掌。毫無疑問，你就是我要找的人！我們非常期待能與您進一步深談，攜手站在AI典範轉移的最前線！</p>
+                `;
+            } else if (score >= 75) {
+                feedbackHTML = `
+                    <h3>🎉 測驗已完成！</h3>
+                    <p>恭喜您順利完成測驗！您在AI架構與實務應用上展現了相當扎實的專業知識與商業敏銳度，成績十分亮眼。您的綜合能力令人印象深刻，具備成為優秀前線領導者的潛力。我們會盡快與您聯繫，感謝您的參與！</p>
+                `;
+            } else if (score >= 60) {
+                feedbackHTML = `
+                    <h3>📝 測驗已完成！</h3>
+                    <p>非常感謝您參與本次測驗。您已具備了基礎的技術認知與一定的商業敏銳度。雖然這次的成績未達我們的最高標準，但您的努力與潛力我們已經看見。感謝您的合作與時間，我們將妥善保留您的紀錄，期待未來有機會再交流！</p>
+                `;
+            } else {
+                feedbackHTML = `
+                    <h3>📝 測驗已完成！</h3>
+                    <p>這次的測驗結果顯示，您在AI與系統架構的相關領域還有許多進步的空間。請不要灰心，持續保持對新技術的熱情與學習的心態，多加熟悉各大AI模型的特性與商業應用實務。請再加油，期待您未來的成長與蛻變！</p>
+                `;
+            }
+
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbzXHr37GyjFTr9RsXTWRm_UNQVlyj0K9XvRQeUFajEio3yJl9ccWrl2bdIoXL9me5ArVA/exec';
+
+            document.getElementById('questionsContainer').style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('result').style.display = 'block';
+
+            fetch(scriptURL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8',
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                document.getElementById('loadingStatus').style.display = 'none';
+                document.getElementById('finalStatus').style.display = 'block';
+                document.getElementById('finalStatus').innerHTML = feedbackHTML;
+            })
+            .catch(error => {
+                document.getElementById('loadingStatus').innerHTML = `<p style="color:red;">上傳失敗，請聯絡面試官。 (${error.message})</p>`;
+            });
+        }
+    </script>
+</body>
+</html>
